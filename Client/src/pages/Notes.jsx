@@ -21,6 +21,7 @@ import { useEffect, useRef } from "react";
 import NoteEditor from "@/components/notes/NoteEditor.jsx";
 import NoteHeader from "@/components/notes/NoteHeader.jsx";
 import NotesList from "@/components/notes/NotesList.jsx";
+import NoteCardSkeleton from "@/components/notes/NoteCardSkeleton.jsx";
 
 import {
   useArchivedNotes,
@@ -37,8 +38,8 @@ import {
 import "@/components/notes/note.css";
 import TrashNotes from "@/components/notes/TrashNote";
 import axiosInstance from "@/utils/axios";
-import { useToast } from '@/contexts/ToastContext';
-import { useNoteStore } from '@/stores/useNoteStore';
+import { useToast } from "@/contexts/ToastContext";
+import { useNoteStore } from "@/stores/useNoteStore";
 
 const colors = [
   { name: "default", style: { backgroundColor: "var(--note-default)" } },
@@ -55,7 +56,7 @@ const Notes = () => {
   const { noteId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Zustand store
   const {
     status,
@@ -480,17 +481,43 @@ const Notes = () => {
     (note) => !note.pinnedAt
   );
 
-  if (status == "active" && isLoading) {
-    return <p>Loading notes...</p>;
-  }
+  // Render skeleton loaders
+  const renderSkeletonLoaders = () => {
+    return (
+      <div className="space-y-4">
+        {/* R1 */}
+        <div
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          }}
+        >
+          <NoteCardSkeleton />
+          <NoteCardSkeleton />
+          <NoteCardSkeleton />
+          <NoteCardSkeleton />
+          <NoteCardSkeleton />
+          <NoteCardSkeleton />
+        </div>
 
-  if (status == "archive" && isArchiveLoading) {
-    return <p>Loading archived notes...</p>;
-  }
+        {/* R2 */}
+        <div
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          }}
+        >
+          <NoteCardSkeleton />
+          <NoteCardSkeleton />
+        </div>
+      </div>
+    );
+  };
 
-  if (status == "trash" && isTrashLoading) {
-    return <p>Loading trashed notes...</p>;
-  }
+  const isAnyLoading =
+    (status === "active" && isLoading) ||
+    (status === "archive" && isArchiveLoading) ||
+    (status === "trash" && isTrashLoading);
 
   return (
     <div
@@ -503,23 +530,29 @@ const Notes = () => {
         >
           <NoteHeader createNewNote={createNewNote} />
 
-          {(status == "active" || status == "archive") && (
-            <NotesList
-              pinnedNotes={pinnedNotes}
-              unpinnedNotes={unpinnedNotes}
-              filteredNotes={filteredNotes}
-              getPlainTextPreview={getPlainTextPreview}
-              exportNote={exportNote}
-            />
-          )}
+          {isAnyLoading ? (
+            renderSkeletonLoaders()
+          ) : (
+            <>
+              {(status == "active" || status == "archive") && (
+                <NotesList
+                  pinnedNotes={pinnedNotes}
+                  unpinnedNotes={unpinnedNotes}
+                  filteredNotes={filteredNotes}
+                  getPlainTextPreview={getPlainTextPreview}
+                  exportNote={exportNote}
+                />
+              )}
 
-          {status == "trash" && (
-            <TrashNotes
-              notes={trashNotes}
-              onDelete={deleteNote}
-              onRestore={restoreNote}
-              getPlainTextPreview={getPlainTextPreview}
-            />
+              {status == "trash" && (
+                <TrashNotes
+                  notes={trashNotes}
+                  onDelete={deleteNote}
+                  onRestore={restoreNote}
+                  getPlainTextPreview={getPlainTextPreview}
+                />
+              )}
+            </>
           )}
         </div>
 
