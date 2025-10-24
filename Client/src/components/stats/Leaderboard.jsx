@@ -60,6 +60,7 @@ const Leaderboard = () => {
   );
 
   const getBadge = (rank) => {
+    console.log("Rank:", rank);
     const baseBadgeStyle = `inline-flex items-center gap-1 rounded-full text-xs font-medium px-2 py-1 -ml-3`;
 
     switch (rank) {
