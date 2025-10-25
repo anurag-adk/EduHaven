@@ -4,11 +4,11 @@ import OnlineFriends from "../components/session/friendsSection/OnlineFriends.js
 import YourRooms from "@/components/session/YourRooms.jsx";
 import SessionRooms from "@/components/session/SessionRooms.jsx";
 import NotLogedInPage from "@/components/NotLogedInPage.jsx";
+import PendingRequestsSection from "@/components/session/PendingRequestsSection.jsx";
 import axiosInstance from "@/utils/axios";
 import { useUserStore } from "@/stores/userStore.js";
 
 function Session() {
-  const [view, setView] = useState("suggested");
   const { user } = useUserStore();
   const [myRooms, setMyRooms] = useState([]);
   const [otherRooms, setOtherRooms] = useState([]);
@@ -16,6 +16,25 @@ function Session() {
 
   const handleRoomLeft = (roomId) => {
     setJoinedRooms(prevRooms => prevRooms.filter(room => room._id !== roomId));
+  };
+
+  const handleRequestHandled = (roomId, targetUserId, action) => {
+    setMyRooms((prev) =>
+      prev.map((room) =>
+        room._id === roomId
+          ? {
+              ...room,
+              pendingRequests: room.pendingRequests.filter(
+                (user) => user._id !== targetUserId
+              ),
+              members:
+                action === "approve"
+                  ? [...room.members, targetUserId]
+                  : room.members,
+            }
+          : room
+      )
+    );
   };
 
   useEffect(() => {
@@ -42,7 +61,11 @@ function Session() {
         <SessionRooms joinedRooms={joinedRooms} onRoomLeft={handleRoomLeft} />
         <OtherRoom otherRooms={otherRooms} />
       </div>
-      <aside className="w-[20%] overflow-scroll min-w-72 space-y-3 2xl:space-y-6 overflow-x-hidden p-3 2xl:p-6 border-l border-gray-500/20">
+      <aside className="w-[20%] overflow-scroll min-w-72 space-y-3 2xl:space-y-6 overflow-x-hidden p-3 2xl:p-6 border-l border-[var(--bg-ter)]">
+        <PendingRequestsSection
+          myRooms={myRooms}
+          onRequestHandled={handleRequestHandled}
+        />
         <OnlineFriends />
       </aside>
     </div>
