@@ -7,6 +7,7 @@ import {
   PinOff,
   Trash,
   Link as LinkIcon,
+  LogOut,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,10 +18,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ConfirmLeaveRoomModal from "@/components/ConfirmLeaveRoomModal";
 
-export default function RoomCard({ room, onDelete, showCategory, loading, onRoomNotFound, isJoinedRoom = false }) {
+export default function RoomCard({ room, onDelete, showCategory, loading, onRoomNotFound, isJoinedRoom = false, onLeaveRoom }) {
   const [isPinned, setIsPinned] = useState(false);
   const [joinStatus, setJoinStatus] = useState(null); // 'member', 'pending', 'none'
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
   const navigate = useNavigate();
 
   // Load pinned state
@@ -208,6 +211,28 @@ export default function RoomCard({ room, onDelete, showCategory, loading, onRoom
     setMenuOpen(false);
   };
 
+  const handleLeaveRoom = () => {
+    setShowLeaveModal(true);
+  };
+
+  const confirmLeaveRoom = async () => {
+    if (loading) return;
+    try {
+      await axiosInstance.post(`/session-room/${room._id}/leave`);
+      toast.success("Left room successfully");
+      setShowLeaveModal(false);
+      if (onLeaveRoom) {
+        onLeaveRoom(room._id);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to leave room");
+    }
+  };
+
+  const cancelLeaveRoom = () => {
+    setShowLeaveModal(false);
+  };
+
   if (loading) {
     return (
       <div className="relative bg-sec backdrop-blur-md p-6 rounded-3xl shadow animate-pulse">
@@ -286,6 +311,16 @@ export default function RoomCard({ room, onDelete, showCategory, loading, onRoom
               Copy Link
             </DropdownMenuItem>
 
+            {isJoinedRoom && (
+              <DropdownMenuItem
+                onClick={handleLeaveRoom}
+                className="flex items-center gap-2 text-red-500 cursor-pointer"
+              >
+                <LogOut size={18} />
+                Leave Room
+              </DropdownMenuItem>
+            )}
+
             {onDelete && (
               <DropdownMenuItem
                 onClick={() => onDelete(room)}
@@ -358,6 +393,14 @@ export default function RoomCard({ room, onDelete, showCategory, loading, onRoom
           <Activity className="w-5 h-5" />
           Join
         </Button>
+      )}
+
+      {showLeaveModal && (
+        <ConfirmLeaveRoomModal
+          roomName={room.name}
+          onConfirm={confirmLeaveRoom}
+          onCancel={cancelLeaveRoom}
+        />
       )}
     </div>
   );

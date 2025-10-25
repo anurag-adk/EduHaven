@@ -212,3 +212,35 @@ export const deleteRoom = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+
+export const leaveRoom = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const roomId = req.params.id;
+
+    const room = await SessionRoom.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check if user is a member of the room
+    const isMember = room.members
+      .map((id) => id.toString())
+      .includes(userId.toString());
+
+    if (!isMember) {
+      return res.status(400).json({ error: "You are not a member of this room" });
+    }
+
+    // Remove user from members list
+    room.members = room.members.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+    
+    await room.save();
+    return res.json({ success: true, message: "Left room successfully" });
+  } catch (err) {
+    console.error("leaveRoom error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
