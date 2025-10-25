@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import RoomCard from "./RoomCard";
 
-export default function SessionRooms({ joinedRooms }) {
+export default function SessionRooms({ joinedRooms, onRoomLeft }) {
   const [sessions, setSessions] = useState(joinedRooms);
 
   useEffect(() => {
     setSessions(joinedRooms.map((r) => ({ ...r, joins: r.joins ?? 0 })));
   }, [joinedRooms]);
+
+  const handleLeaveRoom = (roomId) => {
+    setSessions(prevSessions => prevSessions.filter(room => room._id !== roomId));
+    if (onRoomLeft) {
+      onRoomLeft(roomId);
+    }
+  };
 
 
   return (
@@ -43,6 +50,7 @@ export default function SessionRooms({ joinedRooms }) {
                   room={room}
                   showCategory={true}
                   isJoinedRoom={true}
+                  onLeaveRoom={handleLeaveRoom}
                 />
               </motion.div>
             ))}

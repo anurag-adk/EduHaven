@@ -9,6 +9,7 @@ import {
   joinRoom,
   getJoinStatus,
   cancelJoinRequest,
+  leaveRoom,
 } from "../Controller/SessionRoomController.js";
 // Get current user's join status for a room
 
@@ -28,4 +29,6 @@ router.post("/:id/handle-request", authMiddleware, handleJoinRequest);
 router.post("/:id/join", authMiddleware, joinRoom);
 
 router.get("/:id/join-status", authMiddleware, getJoinStatus);
+// Leave a room
+router.post("/:id/leave", authMiddleware, leaveRoom);
 export default router;

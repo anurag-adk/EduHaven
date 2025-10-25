@@ -14,6 +14,10 @@ function Session() {
   const [otherRooms, setOtherRooms] = useState([]);
   const [joinedRooms, setJoinedRooms] = useState([]);
 
+  const handleRoomLeft = (roomId) => {
+    setJoinedRooms(prevRooms => prevRooms.filter(room => room._id !== roomId));
+  };
+
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -35,7 +39,7 @@ function Session() {
     <div className="h-[100vh] w-[calc(100vw-70px)] pb-0 flex ">
       <div className="w-[80%] overflow-x-hidden p-3 2xl:p-6 space-y-6">
         <YourRooms myRooms={myRooms} />
-        <SessionRooms joinedRooms={joinedRooms} />
+        <SessionRooms joinedRooms={joinedRooms} onRoomLeft={handleRoomLeft} />
         <OtherRoom otherRooms={otherRooms} />
       </div>
       <aside className="w-[20%] overflow-scroll min-w-72 space-y-3 2xl:space-y-6 overflow-x-hidden p-3 2xl:p-6 border-l border-gray-500/20">
