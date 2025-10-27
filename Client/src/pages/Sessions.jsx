@@ -15,7 +15,9 @@ function Session() {
   const [joinedRooms, setJoinedRooms] = useState([]);
 
   const handleRoomLeft = (roomId) => {
-    setJoinedRooms(prevRooms => prevRooms.filter(room => room._id !== roomId));
+    setJoinedRooms((prevRooms) =>
+      prevRooms.filter((room) => room._id !== roomId)
+    );
   };
 
   const handleRequestHandled = (roomId, targetUserId, action) => {
@@ -62,11 +64,11 @@ function Session() {
         <OtherRoom otherRooms={otherRooms} />
       </div>
       <aside className="w-[20%] overflow-scroll min-w-72 space-y-3 2xl:space-y-6 overflow-x-hidden p-3 2xl:p-6 border-l border-[var(--bg-ter)]">
+        <OnlineFriends />
         <PendingRequestsSection
           myRooms={myRooms}
           onRequestHandled={handleRequestHandled}
         />
-        <OnlineFriends />
       </aside>
     </div>
   );
