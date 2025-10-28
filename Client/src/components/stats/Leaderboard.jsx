@@ -233,25 +233,26 @@ const Leaderboard = () => {
       )}
 
       {/* Footer */}
-      {currentUser && leaderboard.length > 0 && (
+      {leaderboard.length > 0 && (
         <div className="mt-6 text-center text-lg font-semibold text-[var(--txt-dim)]">
-          {highlightedUserId === currentUserId ? (
+          {highlightedUserId === currentUserId && currentUser ? (
             <>
               Your Position:{" "}
               {leaderboard.findIndex((u) => u.userId === currentUserId) + 1} (
               {formatDuration(currentUser.totalDuration)})
             </>
-          ) : (
+          ) : highlightedUser ? (
             <>
-              {
-                leaderboard.find((user) => user.userId === highlightedUserId)
-                  .username
-              }
+              {highlightedUser.username}
               {"'s Position: "}
               {leaderboard.findIndex((u) => u.userId === highlightedUserId) +
                 1}{" "}
               ({formatDuration(highlightedUser.totalDuration)})
             </>
+          ) : (
+            <span className="text-[var(--txt-disabled)]">
+              You are not on the leaderboard yet - start studying to get ranked!
+            </span>
           )}
         </div>
       )}

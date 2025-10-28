@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Clock4, Flame, BarChart2 } from "lucide-react";
-import { useConsolidatedStats } from "@/queries/timerQueries";
+import { useLeaderboard } from "@/queries/timerQueries";
 import { levels } from "@/components/stats/MonthlyLevel";
 import { fetchConsolidatedStats } from "@/api/timerApi";
 import { useTimerStore } from "@/stores/timerStore";
+import { useUserStore } from "@/stores/userStore";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} 
-from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const periodMapping = {
   Today: "daily",
@@ -36,6 +41,7 @@ function StatsSummary() {
 
   // Get current timer state from store
   const { time: currentTimerTime, isRunning, startTime } = useTimerStore();
+  const { user } = useUserStore();
 
   // Get the period for API call based on selected filter
   const apiPeriod = periodMapping[selectedTime] || "daily";
@@ -46,6 +52,9 @@ function StatsSummary() {
     refetchInterval: 30000,
     staleTime: 15000,
   });
+
+  // Fetch leaderboard data to calculate rank dynamically
+  const { data: leaderboard = [] } = useLeaderboard("weekly", false);
 
   // Get the current session hours
 
@@ -100,10 +109,22 @@ function StatsSummary() {
   // Here the study data directly uses the values from the API call
   const studyData = stats
     ? {
-        Today: `${getEnhancedValue(stats.timePeriods?.today || "0.0", "Today").toFixed(1)} h`,
-        "This week": `${getEnhancedValue(stats.timePeriods?.thisWeek || "0.0", "This week").toFixed(1)} h`,
-        "This month": `${getEnhancedValue(stats.timePeriods?.thisMonth || "0.0", "This month").toFixed(1)} h`,
-        "All time": `${getEnhancedValue(stats.timePeriods?.allTime || "0.0", "All time").toFixed(1)} h`,
+        Today: `${getEnhancedValue(
+          stats.timePeriods?.today || "0.0",
+          "Today"
+        ).toFixed(1)} h`,
+        "This week": `${getEnhancedValue(
+          stats.timePeriods?.thisWeek || "0.0",
+          "This week"
+        ).toFixed(1)} h`,
+        "This month": `${getEnhancedValue(
+          stats.timePeriods?.thisMonth || "0.0",
+          "This month"
+        ).toFixed(1)} h`,
+        "All time": `${getEnhancedValue(
+          stats.timePeriods?.allTime || "0.0",
+          "All time"
+        ).toFixed(1)} h`,
       }
     : {
         Today: "0.0 h",
@@ -113,9 +134,16 @@ function StatsSummary() {
       };
 
   // Prepare user stats from the query response
+  // Calculate rank from leaderboard data instead of API
+  const currentUserId = user?._id;
+  const userRankIndex = leaderboard.findIndex(
+    (u) => u.userId === currentUserId
+  );
+  const calculatedRank = userRankIndex !== -1 ? userRankIndex + 1 : 0;
+
   const userStats = stats
     ? {
-        rank: stats.rank || 0,
+        rank: calculatedRank,
         totalUsers: stats.totalUsers || 0,
         streak: stats.streak || 0,
         level: stats.level || {

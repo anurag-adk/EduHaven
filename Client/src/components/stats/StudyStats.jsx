@@ -17,7 +17,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useParams } from "react-router-dom";
-import { useConsolidatedStats } from "@/queries/timerQueries";
+import { useConsolidatedStats, useLeaderboard } from "@/queries/timerQueries";
+import { useUserStore } from "@/stores/userStore";
 
 // ──────────────────────────────────────────────────────────────
 // Helper functions for date formatting
@@ -234,9 +235,13 @@ const StudyStats = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [chartStats, setChartStats] = useState([]);
   const { userId } = useParams();
+  const { user } = useUserStore();
 
   // Replace direct axios calls with consolidated data hook
   const { data, isLoading, error } = useConsolidatedStats(userId, view);
+
+  // Fetch leaderboard data to calculate rank dynamically
+  const { data: leaderboard = [] } = useLeaderboard("weekly", false);
 
   useEffect(() => {
     if (!data || !data.periodStats) return;
@@ -268,8 +273,11 @@ const StudyStats = () => {
   }, [view, data]);
 
   const summary = computeSummary(chartStats);
-  // Get rank from consolidated data instead of separate API call
-  const rank = data?.userStats?.rank || 0;
+
+  // Calculate rank from leaderboard data instead of API
+  const targetUserId = userId || user?._id;
+  const userRankIndex = leaderboard.findIndex((u) => u.userId === targetUserId);
+  const rank = userRankIndex !== -1 ? userRankIndex + 1 : 0;
 
   const handleDropdownClick = (viewType) => {
     setView(viewType);
